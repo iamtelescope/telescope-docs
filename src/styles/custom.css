@@ -27,10 +27,6 @@
   color: #ffffff !important;
 }
 
-/* Increase content width using Starlight CSS variables */
-:root {
-  --sl-content-width: 70rem;
-}
 
 /* Active menu item text colors - adaptive for themes */
 [data-theme="light"] {
