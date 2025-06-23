@@ -2,12 +2,35 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+const enableGA = process.env.ENABLE_GA === 'true';
+const gaMeasurementId = process.env.GA_MEASUREMENT_ID;
+
+const gaHead = enableGA && gaMeasurementId ? [
+	{
+		tag: 'script',
+		attrs: {
+			async: true,
+			src: `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`
+		}
+	},
+	{
+		tag: 'script',
+		content: `
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', '${gaMeasurementId}');
+		`
+	}
+] : [];
+
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Telescope',
 			description: 'Telescope is a web application that provides an intuitive interface for exploring log data.',
+			head: gaHead,
 			logo: {
 				src: './src/assets/telescope-logo.png',
 				replacesTitle: false,
