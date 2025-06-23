@@ -6,7 +6,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: iamtelescope/telescope-docs
+  PUBLIC_IMAGE: iamtelescope/telescope-docs
+  PRIVATE_IMAGE: iamtelescope/telescope-docs-private
 
 jobs:
   build-and-push:
@@ -31,18 +32,14 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        labels: |
-          org.opencontainers.image.visibility=public
+        tags: ${{ env.REGISTRY }}/${{ env.PUBLIC_IMAGE }}:latest
 
     - name: Build and push private image with GA
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:private
+        tags: ${{ env.REGISTRY }}/${{ env.PRIVATE_IMAGE }}:latest
         build-args: |
           ENABLE_GA=true
           GA_MEASUREMENT_ID=${{ secrets.GA_MEASUREMENT_ID }}
-        labels: |
-          org.opencontainers.image.visibility=private
