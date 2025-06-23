@@ -1,0 +1,58 @@
+/* Custom styles for Telescope docs */
+
+/* Site title color - black in light theme, white in dark theme */
+[data-theme="light"] .sl-nav-title,
+[data-theme="light"] .sl-nav-title a,
+[data-theme="light"] header .sl-nav-title,
+[data-theme="light"] header .sl-nav-title a,
+[data-theme="light"] .site-title,
+[data-theme="light"] .site-title a,
+[data-theme="light"] header a[href="/"] {
+  color: #000000 !important;
+}
+
+/* Universal override for light theme title */
+[data-theme="light"] header a,
+[data-theme="light"] header span {
+  color: #000000 !important;
+}
+
+[data-theme="dark"] .sl-nav-title,
+[data-theme="dark"] .sl-nav-title a,
+[data-theme="dark"] header .sl-nav-title,
+[data-theme="dark"] header .sl-nav-title a,
+[data-theme="dark"] .site-title,
+[data-theme="dark"] .site-title a,
+[data-theme="dark"] header a[href="/"] {
+  color: #ffffff !important;
+}
+
+/* Increase content width using Starlight CSS variables */
+:root {
+  --sl-content-width: 70rem;
+}
+
+/* Active menu item text colors - adaptive for themes */
+[data-theme="light"] {
+  --sl-color-text-accent: #385DAB;
+}
+
+[data-theme="dark"] {
+  --sl-color-text-accent: #ffffff;
+}
+
+/* Fix active menu item in dark theme - try multiple selectors */
+[data-theme="dark"] a[aria-current="page"],
+[data-theme="dark"] .sl-nav-link[aria-current="page"],
+[data-theme="dark"] .sidebar a[aria-current="page"],
+[data-theme="dark"] nav a[aria-current="page"] {
+  background-color: #385DAB !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] a[aria-current="page"] span,
+[data-theme="dark"] .sl-nav-link[aria-current="page"] span,
+[data-theme="dark"] .sidebar a[aria-current="page"] span,
+[data-theme="dark"] nav a[aria-current="page"] span {
+  color: #ffffff !important;
+}
