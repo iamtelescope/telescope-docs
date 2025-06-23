@@ -32,6 +32,8 @@ jobs:
         context: .
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        labels: |
+          org.opencontainers.image.visibility=public
 
     - name: Build and push private image with GA
       uses: docker/build-push-action@v5
