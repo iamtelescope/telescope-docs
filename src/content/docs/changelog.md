@@ -4,6 +4,34 @@ description: TODO
 ---
 
 
+## 2025.06.26
+Version: **0.0.19**
+
+Changes:
+- Telescope has migrated to [`clickhouse-connect`](https://github.com/ClickHouse/clickhouse-connect) and now communicates with ClickHouse server exclusively over the HTTP(S) interface.
+- Support for the native protocol (`clickhouse-driver`) has been removed.
+- `JSON` ClickHouse data type is now supported
+- FlyQL now supports **whitespace around operators**. Expressions like `key = value` are valid now (previously only `key=value` was allowed).
+- FlyQL now supports **typed keys**, such as `jsonfield:user-agent = 'firefox'`.
+- FlyQL now supports **quoted JSON paths** to handle special characters like colons. Example: `jsonfield:'my:key:with:colon':path = 123`.
+
+Notes:
+
+:::caution
+
+After this update, **all ClickHouse sources must use HTTP(S) ports**.  
+Telescope no longer supports the native ClickHouse protocol.  
+**All existing sources must be manually reconfigured** to use an HTTP(S) endpoint (typically port `8123` for HTTP and `8443` for HTTPS).  
+Failure to do so will result in connection errors.
+
+:::
+
+**Motivation for dropping native protocol support**
+
+- `clickhouse-connect` is the officially supported driver by ClickHouse Inc., ensuring long-term support and faster access to new ClickHouse features.
+- In Telescope's workload profile — primarily log browsing and filtering — the performance difference for `SELECT` queries is negligible, as result sets are typically small (≤10,000 rows).
+- Simplifies deployment by eliminating native dependencies and improves compatibility with managed environments and cloud infrastructure.
+
 ## 2025.05.18
 Version: **0.0.18**
 Changes:

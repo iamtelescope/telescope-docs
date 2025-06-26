@@ -3,6 +3,9 @@ dist/
 # generated types
 .astro/
 
+# IDE files
+.idea/
+
 # dependencies
 node_modules/
 

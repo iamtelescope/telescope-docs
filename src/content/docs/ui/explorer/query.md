@@ -29,3 +29,24 @@ Despite the fact that the documentation for flyql and flyql ClickHouse generator
 `rest:bytes>=25` - Selects records where the `bytes` field inside the `rest` JSON object is greater than or equal to `25`.
 
 `rest:url=~".*monkey.*"` - Selects records where the `url` field inside the `rest` JSON object contains the word `"monkey"` anywhere in the string.
+
+## New Features (v0.0.19)
+
+### Whitespace Support
+FlyQL now supports whitespace around operators for improved readability:
+
+`host = localhost` - Equivalent to `host=localhost`, with spaces around the `=` operator.
+
+`rest:bytes >= 25` - Equivalent to `rest:bytes>=25`, with spaces around the `>=` operator.
+
+### Typed Keys
+FlyQL now supports typed keys for more precise field targeting:
+
+`jsonfield:user-agent = 'firefox'` - Selects records where the `user-agent` field in the `jsonfield` JSON object equals `'firefox'`.
+
+### Quoted JSON Paths
+For JSON paths containing special characters (like colons), you can now use quotes:
+
+`jsonfield:'my:key:with:colon':path = 123` - Selects records where the JSON path `jsonfield` → `my:key:with:colon` → `path` equals `123`.
+
+This is particularly useful when your JSON field names contain colons or other special characters that would otherwise be interpreted as path separators.

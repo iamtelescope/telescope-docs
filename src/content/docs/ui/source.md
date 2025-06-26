@@ -7,13 +7,18 @@ To create a source, you need to fill in the form data.
 
 ## Connection Data
 ### ClickHouse Source
+
+:::warning
+**Important**: As of version 0.0.19, Telescope only supports HTTP(S) connections to ClickHouse. The native protocol is no longer supported.
+:::
+
 - **`host`** – ClickHouse server host. Defaults to `localhost`.
-- **`port`** – ClickHouse server native protocol port. Defaults to `9000`.
+- **`port`** – ClickHouse server HTTP(S) port. Defaults to `8123` for HTTP or `8443` for HTTPS. **Note**: The native protocol port (9000) is no longer supported.
 - **`user`** – Username used to connect to the server. Defaults to `default`.
 - **`password`** – Password used to connect to the server.
 - **`database`** – Database name.
 - **`table`** – Table name.
-- **`ssl`** – Whether to use a secure connection. (Custom SSL certificates are not yet supported.)
+- **`ssl`** – Whether to use a secure HTTPS connection.
 
 If SSL is enabled, a few additional options become available:
 - **`Verify`** – specifies whether a certificate is required and whether it will be validated after connection. Defaults to True.
