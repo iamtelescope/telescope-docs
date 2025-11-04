@@ -14,6 +14,10 @@ Changes:
   - Connection roles: Owner, Editor, Viewer, User
   - Connections cannot be deleted while in use by sources
 - **Layout Redesign**: Replaced two-pane layout with collapsible left sidebar navigation
+- Datetime picker now supports timezone selection. Thanks to [patridu](https://github.com/patridu)!
+
+Related issues:
+ - [ISSUE-33](https://github.com/iamtelescope/telescope/issues/33)
 
 :::caution[Caution]
 
