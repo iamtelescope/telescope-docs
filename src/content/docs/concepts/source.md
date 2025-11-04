@@ -1,13 +1,141 @@
 ---
 title: Source
-description: TODO
+description: Understand how Sources work in Telescope and their relationship with Connections
 ---
 
+A **Source** is an object that defines how to access and interpret data from an external system. Sources reference [Connections](/concepts/connection) for connectivity and add data-specific configuration on top.
 
-A Source is an object that defines connection parameters for an external data source, such as a database, API, or file. It also specifies which fields from the given source should be used and how.
+## Overview
 
-Additionally, a source acts as an RBAC entity, allowing roles to be assigned to users and groups.
+While a [Connection](/concepts/connection) handles the technical connectivity (host, credentials, SSL), a Source defines:
+- **Which data to access** (database, table, container filters)
+- **Field mappings** (which fields to query, their types, display names)
+- **Special field roles** (time field, severity field)
+- **Query capabilities** (autocomplete, suggestions, raw queries)
+- **Access permissions** (who can read/use/edit the source)
 
-Currently, ClickHouse and Docker sources are supported. 
+## Source Components
+
+### Connection Reference
+
+Every source references exactly one connection. The connection provides:
+- Technical connectivity parameters
+- Authentication credentials
+- Protocol configuration
+
+:::note
+For ClickHouse sources, the database and table are specified in the **Source** configuration, not in the Connection. This allows multiple sources to use the same connection while accessing different databases or tables.
+:::
+
+### Data Location (ClickHouse)
+
+For ClickHouse sources:
+- **`database`** – Which database to query
+- **`table`** – Which table contains the data
+
+### Field Configuration
+
+Sources define which fields from the underlying data should be exposed:
+- Field names and display aliases
+- Data types
+- Autocomplete and suggestion settings
+- JSON string handling
+- Enum values
+
+### Special Fields
+
+- **Time Field** – Used for time-range queries in the explorer
+- **Severity Field** – Used for colored log bars and default grouping
+- **Default Chosen Fields** – Fields shown by default in results
+
+## Source Types
+
+### ClickHouse Source
+
+Uses a ClickHouse connection to query log data from ClickHouse tables.
+
+**Requirements:**
+- ClickHouse connection (HTTP/HTTPS protocol only)
+- Database and table specification
+- Time field for temporal queries
 
 For ClickHouse connections, Telescope uses the [clickhouse-connect](https://clickhouse.com/docs/en/integrations/language-clients/python/intro) Python library, which communicates exclusively over HTTP(S) protocol. As of version 0.0.19, the native protocol (previously supported via clickhouse-driver) is no longer supported.
+
+### Docker Source
+
+Uses a Docker connection to stream logs from containers.
+
+**Requirements:**
+- Docker connection (local or remote socket)
+- Predefined field set (cannot be customized)
+
+**Limitations:**
+- Field list is fixed
+- No severity field support
+- No field customization
+
+## Source as RBAC Entity
+
+Sources act as independent RBAC entities, allowing fine-grained access control:
+- Assign roles to users and groups
+- Control who can read, edit, use, or delete the source
+- Grant raw query permissions independently
+- Manage access separately from the underlying connection
+
+See [Source Roles](/concepts/auth#source-roles) for details.
+
+## Connection vs Source Permissions
+
+Both Connections and Sources have independent permission models:
+
+| Permission Level | Controls | Example |
+|-----------------|----------|---------|
+| **Connection** | Who can use the connection in sources | Alice can create sources using "Prod DB" connection |
+| **Source** | Who can query data from the source | Bob can query logs but can't edit source configuration |
+
+A user needs:
+1. **Connection USE permission** – To create a source using that connection
+2. **Source READ/USE permission** – To query logs from that source
+
+## Relationship Diagram
+
+```
+Connection (Prod ClickHouse)
+    ├── host: clickhouse.prod.com
+    ├── credentials: ***
+    └── ssl: enabled
+         │
+         ├─> Source A (Application Logs)
+         │   ├── database: logs_db
+         │   ├── table: app_logs
+         │   └── fields: timestamp, level, message...
+         │
+         └─> Source B (Audit Logs)
+             ├── database: audit_db
+             ├── table: audit_trail
+             └── fields: event_time, user_id, action...
+```
+
+## Source Lifecycle
+
+1. **Creation**: User selects a connection they have USE access to
+2. **Configuration**: Specify database/table and field mappings
+3. **Validation**: Test connection and optionally load schema
+4. **Usage**: Query logs through the explorer
+5. **Updates**: Modify configuration (requires EDIT permission)
+6. **Deletion**: Remove source (does not delete the connection)
+
+## Best Practices
+
+1. **Naming**: Use descriptive names indicating data type (e.g., "Production App Logs", "Staging API Logs")
+2. **Field Selection**: Only expose fields needed for log analysis
+3. **Time Field**: Use the time/date field that matches your ClickHouse table's partition key for optimal query performance
+4. **Severity Field**: Configure if your logs have severity/level information
+5. **Connection Reuse**: Share connections across sources when appropriate
+6. **Access Control**: Grant minimum required permissions
+
+## Related Concepts
+
+- [Connection](/concepts/connection) – Technical connectivity layer
+- [Authentication & Authorization](/concepts/auth) – Permission model
+- [Querying](/concepts/querying) – How to query data from sources

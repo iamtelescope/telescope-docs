@@ -1,8 +1,37 @@
 ---
 title: Changelog
-description: TODO
 ---
 
+
+## 2025.11.04
+Version: **0.0.21**
+
+Changes:
+- **Connection Separation**: Connections are now independent, reusable entities separate from Sources
+  - Connections can be shared across multiple sources
+  - Database and table specifications moved from Connection to Source configuration (ClickHouse only)
+  - Independent RBAC permission models for Connections and Sources
+  - Connection roles: Owner, Editor, Viewer, User
+  - Connections cannot be deleted while in use by sources
+- **Layout Redesign**: Replaced two-pane layout with collapsible left sidebar navigation
+
+:::caution[Caution]
+
+This release requires database migrations to be run.
+
+:::
+
+## 2025.07.04
+Version: **0.0.20**
+
+Changes:
+- Bugfix: `ca_certs` missing parameter for clickhouse-connect (#50)
+
+:::caution[Caution]
+
+This release requires database migrations to be run.
+
+:::
 
 ## 2025.06.26
 Version: **0.0.19**
