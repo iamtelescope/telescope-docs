@@ -2,6 +2,15 @@
 title: Changelog
 ---
 
+## 2025.11.06
+Version: **0.0.22**
+
+Changes:
+- Added support for setting `base_url` to put telescope behind reverse proxy with custom URL prefixes. Thanks to [Toocky](https://github.com/Toocky)!
+
+Related issues:
+ - [ISSUE-29](https://github.com/iamtelescope/telescope/issues/29)
+
 
 ## 2025.11.04
 Version: **0.0.21**
