@@ -55,6 +55,7 @@ frontend:
     github_url: ""
     show_docs_url: true  # show or not docs url on top panel
     docs_url: ""
+    base_url: "" # base url path ie "/telescope"
 
 logging:
   # Options: default, dev, or json
