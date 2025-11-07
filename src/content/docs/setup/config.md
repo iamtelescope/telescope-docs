@@ -13,7 +13,7 @@ Please check the [config.py](https://github.com/iamtelescope/telescope/blob/main
 auth:
   providers:
     github:
-      # Enable or disable login via GitHub (https://github.com/iamtelescope/telescope/blob/main/backend/base/settings.py#L143-L154)
+      # Enable or disable login via GitHub
       enabled: false
       # Add users to the specified group on login (the group must exist)
       default_group: null
@@ -23,8 +23,28 @@ auth:
       secret: ''
       # If specified, users must belong to one of these organizations to log in.
       organizations: []
-  # If set to true, forces login page to redirect to github auth (only available when github auth provider is enabled)
-  force_github_auth: false
+    okta:
+      # Enable or disable login via Okta
+      enabled: false
+      # Okta OAuth client ID
+      client_id: ''
+      # Okta OAuth client secret
+      secret: ''
+      # Okta base URL (e.g., https://yourcompany.okta.com)
+      base_url: ''
+      # Add users to the specified group on login (the group must exist)
+      default_group: null
+      # OAuth scopes to request (space-separated)
+      scope: 'openid profile email'
+      # Enable PKCE (Proof Key for Code Exchange) for enhanced security
+      pkce_enabled: true
+  # Force authentication through a specific provider ('github' or 'okta')
+  # When set, the login page will automatically redirect to the specified provider
+  force_auth_provider: null
+  # Secret URL path for emergency local login when forced auth is enabled
+  # Example: Setting this to "emergency-abc123" creates the URL /login/emergency-abc123
+  # This URL bypasses forced authentication and shows the local login form
+  local_login_secret_path: null
   # If set to true, the user is always authenticated without any conditions
   enable_testing_auth: false
   # If enable_testing_auth is set true, defines the username of the logged-in user

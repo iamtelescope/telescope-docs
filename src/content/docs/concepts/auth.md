@@ -6,13 +6,68 @@ description: Learn about authentication methods and RBAC permission model in Tel
 ## Authentication
 
 Telescope utilizes [Django's](https://www.djangoproject.com/) default authentication system.
-For GitHub authentication, it uses the [django-allauth](https://docs.allauth.org/en/latest/) package.
+For third-party authentication, it uses the [django-allauth](https://docs.allauth.org/en/latest/) package with support for GitHub and Okta.
 
 The basic authentication flow is as follows:
 
-* The user provides credentials (username and password) or logs in via a social account (e.g., GitHub).
+* The user provides credentials (username and password) or logs in via a social account (e.g., GitHub, Okta).
 * The backend verifies the credentials and stores the session object in the database.
 * For each request, the session is validated and verified.
+
+### Supported Authentication Methods
+
+#### Local Authentication
+Standard Django username/password authentication using the built-in user model.
+
+#### GitHub OAuth
+OAuth 2.0 integration with GitHub using django-allauth. Users can authenticate using their GitHub accounts.
+
+**Configuration:**
+- `client_id`: GitHub OAuth application client ID
+- `secret`: GitHub OAuth application secret
+- `organizations`: (Optional) List of required GitHub organizations for access
+- `default_group`: (Optional) Django group to automatically assign users upon first login
+
+When GitHub authentication is enabled with organization restrictions, users must be members of at least one specified organization to access Telescope.
+
+#### Okta Authentication
+OAuth 2.0 integration with Okta using django-allauth. Features include:
+- PKCE (Proof Key for Code Exchange) support for enhanced security
+- Automatic user group assignment upon login
+- Configurable scopes (default: `openid profile email`)
+- Support for forced authentication (Okta-only mode)
+
+**Configuration:**
+- `client_id`: Okta OAuth application client ID
+- `secret`: Okta OAuth application secret
+- `base_url`: Okta domain URL (e.g., `https://yourcompany.okta.com`)
+- `default_group`: (Optional) Django group to automatically assign users upon first login
+- `scope`: OAuth scopes to request (default: `openid profile email`)
+- `pkce_enabled`: Enable PKCE for enhanced security (default: `true`)
+
+When Okta authentication is enabled, users are automatically assigned to a configurable default group upon first login, allowing for streamlined user management and role assignment.
+
+### Forced Authentication
+
+You can force users to authenticate through a specific OAuth provider by setting `force_auth_provider` to either `github` or `okta`. When enabled, the login page will automatically redirect to the configured provider, hiding the local login form.
+
+### Emergency Local Login
+
+When forced authentication is enabled, you may still need access to local authentication for emergency situations. Configure `local_login_secret_path` to create a secret URL that bypasses forced authentication:
+
+```yaml
+auth:
+  force_auth_provider: "okta"
+  local_login_secret_path: "emergency-abc123"
+```
+
+With this configuration, you can access local login at: `https://yourapp.com/login/emergency-abc123`
+
+This emergency login URL:
+- Shows the standard username/password login form
+- Bypasses forced OAuth authentication
+- Should be kept secret and only used for emergency access
+- Redirects to regular login if the secret path doesn't match or isn't configured
 
 ## Authorization
 

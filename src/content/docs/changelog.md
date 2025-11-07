@@ -2,6 +2,35 @@
 title: Changelog
 ---
 
+## 2025.11.07
+Version: **0.0.23**
+
+Changes:
+- **Okta authentication support**: Added OAuth 2.0 integration with Okta
+  - Support for PKCE (Proof Key for Code Exchange) for enhanced security
+  - Configurable OAuth scopes
+  - Automatic user group assignment upon first login
+  - Configurable Okta base URL for different Okta tenants
+- **Emergency local login**: Added `local_login_secret_path` for backdoor local authentication when forced SSO is enabled (e.g., `/login/emergency-abc123`)
+- **UI improvements**:
+  - Username truncation in sidebar with tooltip for long usernames/emails (>20 characters)
+  - Added logout button to user profile page
+  - Display authentication provider (local/github/okta) under username in sidebar
+- **Configuration enhancements**:
+  - Explicit `SECURE_PROXY_SSL_HEADER` configuration support for HTTPS detection behind proxies
+
+:::caution[Configuration breaking change]
+
+The `force_github_auth` configuration option has been **removed** and replaced with `force_auth_provider` to support multiple OAuth providers.
+
+**Migration required**: if you are using `force_github_auth: true`, you must update your configuration to `force_auth_provider: "github"`.
+
+:::
+
+Related documentation:
+- [Authentication & Authorization](/concepts/auth)
+- [Configuration Options](/setup/config)
+
 ## 2025.11.06
 Version: **0.0.22**
 
