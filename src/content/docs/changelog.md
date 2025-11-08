@@ -5,6 +5,10 @@ title: Changelog
 ## 2025.11.07
 Version: **0.0.23**
 
+:::danger
+This release contains a bug in datetime range picker, see https://github.com/iamtelescope/telescope/issues/68
+:::
+
 Changes:
 - **Okta authentication support**: Added OAuth 2.0 integration with Okta
   - Support for PKCE (Proof Key for Code Exchange) for enhanced security
@@ -34,6 +38,10 @@ Related documentation:
 ## 2025.11.06
 Version: **0.0.22**
 
+:::danger
+This release contains a bug in datetime range picker, see https://github.com/iamtelescope/telescope/issues/68
+:::
+
 Changes:
 - Added support for setting `base_url` to put telescope behind reverse proxy with custom URL prefixes. Thanks to [Toocky](https://github.com/Toocky)!
 
@@ -43,6 +51,10 @@ Related issues:
 
 ## 2025.11.04
 Version: **0.0.21**
+
+:::danger
+This release contains a bug in datetime range picker, see https://github.com/iamtelescope/telescope/issues/68
+:::
 
 Changes:
 - **Connection Separation**: Connections are now independent, reusable entities separate from Sources
