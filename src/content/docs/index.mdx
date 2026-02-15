@@ -46,5 +46,11 @@ docker run \
     ghcr.io/iamtelescope/telescope:0.0.24
 ```
 
+:::note[Kubernetes Configuration]
+If you want to use Telescope with your local `~/.kube/config` file as a Kubernetes source, you have two options:
+- **Mount the config file**: Add `-v ~/.kube/config:/root/.kube/config:ro` to the docker run command
+- **Copy the config manually**: Copy and paste the contents of your `~/.kube/config` file into Telescope's source configuration UI
+:::
+
 Once started, the service will be available on localhost port `9898`.
 Proceed to [http://localhost:9898/setup](http://localhost:9898/setup) to create a superuser account.
