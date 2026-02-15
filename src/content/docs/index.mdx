@@ -5,7 +5,7 @@ description: Telescope is a web application that provides an intuitive interface
 
 Welcome to **Telescope** project documentation. Current version is **0.0.24** ([changelog](/changelog)).
 
-Telescope is a web application that provides an intuitive interface for exploring log data. It supports multiple data sources, including **[ClickHouse](https://github.com/ClickHouse/ClickHouse)**, **[Docker](https://www.docker.com/)**, and **[Kubernetes](https://kubernetes.io/)**. Users can configure connections, filter and search logs, and build visualizations through a unified and user-friendly interface. 
+Telescope is a web application that provides an intuitive interface for exploring log data. It supports multiple data sources, including **[ClickHouse](https://github.com/ClickHouse/ClickHouse)**, **[Docker](https://www.docker.com/)**, and **[Kubernetes](https://kubernetes.io/)**. Users can configure connections, filter and search logs, and build visualizations through a unified and user-friendly interface.
 
 Telescope uses FlyQL as a query abstraction layer, offering a consistent and secure querying experience across different source types. While ClickHouse remains the primary backend for structured log storage, support for additional sources is continuously evolving.
 
@@ -17,10 +17,10 @@ Telescope uses FlyQL as a query abstraction layer, offering a consistent and sec
 
 ### 1. Download the Docker Image
 
-Pull the version `0.0.23` Docker image from GitHub Container Registry:
+Pull the version `0.0.24` Docker image from GitHub Container Registry:
 
 ```sh
-docker pull ghcr.io/iamtelescope/telescope:0.0.23
+docker pull ghcr.io/iamtelescope/telescope:0.0.24
 ```
 
 ### 2. Copy the SQLite Database and config templates
@@ -43,7 +43,7 @@ docker run \
     -v $(realpath ~/.telescope/config.yaml):/config.yaml \
     -v $(realpath ~/.telescope/db.sqlite3):/db.sqlite3 \
     --network host \
-    ghcr.io/iamtelescope/telescope:0.0.23
+    ghcr.io/iamtelescope/telescope:0.0.24
 ```
 
 Once started, the service will be available on localhost port `9898`.
