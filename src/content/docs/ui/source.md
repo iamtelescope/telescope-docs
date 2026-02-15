@@ -1,81 +1,100 @@
 ---
 title: Source configuration
-description: Learn how to create and configure sources using existing connections in Telescope.
+description: Learn how to create and configure sources using existing connections in Telescope
 ---
 
 Sources define how to access and interpret data from external systems. To create a source, you reference an existing [Connection](/concepts/connection) and add data-specific configuration on top.
 
-## Creating a source
+## Source types
 
-The source creation wizard consists of five steps:
+Telescope supports several types of sources, each with different configuration requirements:
 
-### Step 1: Connection
+- **[ClickHouse source](/ui/source/clickhouse)**
+- **[Kubernetes source](/ui/source/kubernetes)**
+- **[Docker source](/ui/source/docker)**
 
-Choose an existing connection from the dropdown list. Only connections you have `connection_use` permission for will appear.
+## Common concepts
 
-:::tip
-If you don't see a connection you need, ask a connection owner or Global Admin to grant you `connection_use` permission, or create a new connection at **Connections → New**.
-:::
+### Connections
 
-For **ClickHouse connections**, specify which database and table to use:
-- **`database`** – Database name
-- **`table`** – Table name
+All sources require an existing connection. You must have `connection_use` permission on the connection to create a source using it.
 
-For **Docker connections**, no additional configuration is needed.
+See [Connection configuration](/ui/connection) for setup instructions.
 
-### Step 2: Fields setup
+### Severity rules (Docker/Kubernetes only)
 
-Add and configure fields for your source.
+*Since v0.0.24*
 
-Click **"Autoload fields"** to automatically load field definitions from the database schema (ClickHouse only). This is the recommended approach as it ensures field types are correct.
+Docker and Kubernetes sources support **severity rules** to extract and normalize severity from log message bodies.
 
-For manual field configuration or Docker sources, click **"Add Field"** to add fields one by one.
+**UI overview:**
 
-### Step 3: Field mapping
+The severity rules editor has two sections:
 
-Configure which fields have special roles:
+#### Extraction rules
 
-- **`Time field`** – Used for filtering logs by time range. Should match your ClickHouse table's partition key for optimal performance (required)
-- **`Date field`** – Additional date field if your schema separates date and time
-- **`Severity field`** – Used to apply different colors to message bars based on severity and as a default field for graph grouping
-  :::note
-  This setting is **disabled for Docker sources**, which do not support severity highlighting.
-  :::
-- **`Default chosen fields`** – Fields shown by default in the results table (required)
+Define rules to extract severity from the log message body. Click **"Add Rule"** to create a new extraction rule.
 
-### Step 4: Naming
+For each rule, configure:
 
-- **`slug`** – A unique [slug](https://docs.djangoproject.com/en/5.1/ref/forms/fields/#slugfield) identifier. Cannot be changed after creation (used as a human-readable source identifier).
-- **`name`** – Human-readable source name (e.g., "Production App Logs", "Staging API Logs").
-- **`description`** – Optional description explaining what data this source provides.
+- **Rule type**: Choose the extraction method
+  - **Field** – Extract from JSON structure using comma-separated path
+  - **Regex** – Extract using regular expression pattern matching
 
-### Step 5: Review and create
+**For Field rules:**
+- **Path** – Comma-separated path to the severity column (e.g., `level` or `log,level`)
+  - Each path segment navigates one level deeper in the JSON structure
+  - Example: `log,level` accesses `obj.log.level` in the JSON
 
-Review all your configuration and click **"Create"** (or **"Save"** when editing) to finalize the source.
+**For Regex rules:**
+- **Regex pattern** – Regular expression to match severity (e.g., `\[(\w+)\]`)
+- **Capture group** – Which capture group to extract (0 = full match, 1+ = capture groups)
+- **Case-insensitive** – Toggle to ignore case when matching pattern
 
-### Field properties
+**Evaluation order:**
+Extraction rules are evaluated top-to-bottom. The first rule that successfully extracts a value wins, and remaining rules are skipped. Order your rules from most specific to most general.
 
-Each field has several properties:
+#### Severity remapping
 
-- **`Name`** – Field name in the database table
-- **`Display Name`** – Field name shown in the data explorer
-- **`Type`** – The field type, based on the ClickHouse data type. If the schema is loaded automatically, this type is derived directly from ClickHouse. When adding fields manually, users can select a type from a predefined list or enter it manually. Currently, the type is primarily used to determine which fields can be selected as the **`Time field`** (only fields containing `datetime` are eligible).
-- **`Treat as JSON String`** – A boolean property that defines whether this field should be treated as a JSON object in the result. If set to `true`, the server will convert the string into a JSON object. If set to `false`, the value will remain a string and will be displayed as such in the UI.
-- **`Autocomplete`** – A boolean property that defines whether this field should use autocompletion in the query input.
-- **`Suggest`** – A boolean property that defines whether this field should be suggested in the query input.
-- **`Values`** – A comma-separated list of predefined field values. This field is used only for the `enum` type. It allows specifying a fixed set of values for a particular field, ensuring that only valid options are used. This is particularly useful for `enum` types, as it helps prevent sending requests with incorrect data.
+Map extracted values to normalized severity levels. Click **"Add Mapping"** to create a new remapping rule.
+
+For each mapping, configure:
+
+- **Pattern** – Regex pattern to match the extracted value (e.g., `warn.*` matches "warn", "warning", "WARN")
+- **Severity level** – Dropdown with color-coded standard levels:
+  - UNKNOWN (gray), FATAL (red), ERROR (red), CRITICAL (orange), WARN (yellow), INFO (blue), DEBUG (green), TRACE (gray)
+- **Case-insensitive** – Toggle to ignore case when matching pattern
+
+**Evaluation order:**
+Remap rules are also evaluated top-to-bottom. The first pattern that matches wins. If no pattern matches, the extracted value is used as-is.
+
+**Example configuration:**
+
+Here's a simple configuration for JSON logs with nested severity:
+
+**Extraction rules:**
+1. Field rule: Path = `log,level`
+2. Regex rule: Pattern = `level=(\w+)`, Capture group = 1
+
+**Remap rules:**
+1. Pattern = `error`, Value = `ERROR`, Case-insensitive = `true`
+2. Pattern = `warn.*`, Value = `WARN`, Case-insensitive = `true`
+
+This configuration:
+- First tries JSON extraction from nested `log.level` column
+- Falls back to regex extraction from `level=ERROR` format
+- Normalizes "error", "Error", "ERROR" to "ERROR"
+- Normalizes "warn", "warning", "WARN" to "WARN"
+
+For detailed examples and patterns, see [Severity rules by example](/howto/severity-rules).
 
 ## Editing sources
 
 To edit a source, navigate to its detail page and click **"Edit"**.
 
-:::warning
-**Connection kind restriction**: When editing a source, you cannot change to a connection of a different kind. The connection selector will only show connections matching the source's current connection kind (ClickHouse or Docker).
+:::warning[Connection kind restriction]
+When editing a source, you cannot change to a connection of a different kind. The connection selector will only show connections matching the source's current connection kind (ClickHouse, Docker, or Kubernetes).
 :::
-
-For example:
-- If a source uses a ClickHouse connection, you can only select other ClickHouse connections
-- If a source uses a Docker connection, you can only select other Docker connections
 
 This ensures that the source configuration remains consistent with the connection type.
 
@@ -88,9 +107,9 @@ The source detail page displays:
   - Connection information (name, link to connection detail page)
   - Database and table (for ClickHouse sources)
 
-- **Field configuration**
-  - Complete list of configured fields
-  - Time field and severity field settings
+- **Column configuration**
+  - Complete list of configured columns
+  - Time column and severity column settings
 
 - **Access control**
   - List of users and groups with access to this source
@@ -98,11 +117,11 @@ The source detail page displays:
 
 ## Source permissions
 
-Sources use Role-Based Access Control (RBAC) independent from their underlying connection. See [Source Roles](/concepts/auth#source-roles) for details.
+Sources use Role-Based Access Control (RBAC) independent from their underlying connection. See [Source roles](/concepts/auth#source-roles) for details.
 
 ### Permission requirements
 
-| What You Want to Do | Required Permissions |
+| What you want to do | Required permissions |
 |---------------------|---------------------|
 | View source list | `source_read` on source |
 | Create a new source | `global_create_source` AND `connection_use` on connection |
@@ -138,19 +157,17 @@ Deleting a source does **not** delete the underlying connection. The connection 
    - Reuse existing connections when accessing the same system
    - Create separate sources for different databases/tables on the same connection
 
-3. **Field configuration**
-   - Only expose fields needed for log analysis
-   - Use **"Autoload fields"** when possible to ensure accuracy
-   - Use the time/date field that matches your ClickHouse table's partition key for optimal query performance
-   - Configure severity field if your logs have severity/level information
+3. **Column configuration**
+   - Only expose columns needed for log analysis
+   - Configure severity column/rules if your logs have severity information
 
 4. **Access control**
    - Grant minimum required permissions
    - Use `source_use` role for team members who need to query logs
    - Restrict `source_raw_query` to trusted users only
 
-## Related concepts
+## Related documentation
 
+- [Source concepts](/concepts/source) – Technical details about sources
 - [Connection configuration](/ui/connection) – How to create and manage connections
-- [Source](/concepts/source) – Technical details about sources
-- [Authentication & Authorization](/concepts/auth) – Permission model details
+- [Authentication & authorization](/concepts/auth) – Permission model details

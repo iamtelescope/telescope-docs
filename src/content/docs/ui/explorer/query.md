@@ -9,26 +9,79 @@ Query input syntax is [FlyQL](https://github.com/iamtelescope/flyql) syntax. Ple
 - For **Docker** sources, queries are evaluated directly in Python using [FlyQL's matcher](https://github.com/iamtelescope/flyql/blob/main/python/flyql/matcher/evaluator.py), which does **not support `LIKE`-style wildcard matching**.
 
 :::caution
-In Docker sources, expressions like `host=l*ohost` are **not** interpreted using SQL-style `LIKE`. Instead, you should use `=~` for pattern matching, e.g. `host=~"^l.*ohost$"`.
+In Docker sources, expressions like `host=l*ohost` are **not** interpreted using SQL-style `LIKE`. Instead, you should use `~` for pattern matching, e.g. `host~"^l.*ohost$"`.
 :::
 
 Despite the fact that the documentation for flyql and flyql ClickHouse generator is located in their respective repositories, a few query examples are provided here to give a basic understanding of how to query data inside Telescope.
 
-`host=localhost` - Selects records where the `host` field is exactly `"localhost"`.
+`host=localhost` - Selects records where the `host` column is exactly `"localhost"`.
 
-`host!=localhost` - Selects records where the `host` field is **not** `"localhost"`.
+`host!=localhost` - Selects records where the `host` column is **not** `"localhost"`.
 
-`host=l*ohost` - Selects records where the `host` field starts with `"l"`, ends with `"ohost"`, and has any characters in between.
+`host=l*ohost` - Selects records where the `host` column starts with `"l"`, ends with `"ohost"`, and has any characters in between.
 - **ClickHouse**: Matches records where `host` starts with `"l"` and ends with `"ohost"` using SQL `LIKE`.
-- **Docker**: **Not supported** — use a regular expression instead: `host=~'^l.*ohost$'`.
+- **Docker**: **Not supported** — use a regular expression instead: `host~'^l.*ohost$'`.
 
-`host=localhost and message=2025*` - Selects records where the `host` is `"localhost"` and the `message` field starts with `"2025"`.
+`host=localhost and message=2025*` - Selects records where the `host` is `"localhost"` and the `message` column starts with `"2025"`.
 
 `(host=localhost or host=remote) and not host=puppet` - Selects records where the `host` is either `"localhost"` or `"remote"`, but **not** `"puppet"`.
 
-`rest:bytes>=25` - Selects records where the `bytes` field inside the `rest` JSON object is greater than or equal to `25`.
+`rest.bytes>=25` - Selects records where the `bytes` column inside the `rest` JSON object is greater than or equal to `25`.
 
-`rest:url=~".*monkey.*"` - Selects records where the `url` field inside the `rest` JSON object contains the word `"monkey"` anywhere in the string.
+`rest.url~".*monkey.*"` - Selects records where the `url` column inside the `rest` JSON object contains the word `"monkey"` anywhere in the string.
+
+## New Features & Breaking Changes (v0.0.24)
+
+### Breaking change: regex operator
+
+The regex operator has been simplified from `=~` to `~`:
+
+**Old syntax:**
+```
+message=~"error.*"
+```
+
+**New syntax:**
+```
+message~"error.*"
+```
+
+All queries using `=~` must be updated to use `~`.
+
+### New: list membership operators
+
+FlyQL now supports `in` and `not in` operators for checking if a value exists in a list:
+
+```
+status in [200, 201, 204]
+env not in ['prod', 'staging']
+method in ['GET', 'POST'] and status in [200, 201]
+```
+
+**Rules:**
+- Values are enclosed in square brackets `[]` and separated by commas
+- String values must be quoted: `['a', 'b']`
+- Number values are unquoted: `[1, 2, 3]`
+- Empty list `[]` is allowed (`in []` is always false, `not in []` is always true)
+
+### New: truthy/falsy checks
+
+You can now check if a column has a truthy or falsy value without an explicit comparison:
+
+```
+active                          # column 'active' is truthy
+message and status=200          # 'message' exists and status is 200
+not archived                    # column 'archived' is falsy
+active and not debug            # 'active' is truthy and 'debug' is falsy
+```
+
+A value is considered **falsy** if it is:
+- `null` / `None` / missing
+- Empty string `""`
+- Zero `0`
+- Boolean `false`
+
+Everything else is **truthy**.
 
 ## New Features (v0.0.19)
 
@@ -37,16 +90,16 @@ FlyQL now supports whitespace around operators for improved readability:
 
 `host = localhost` - Equivalent to `host=localhost`, with spaces around the `=` operator.
 
-`rest:bytes >= 25` - Equivalent to `rest:bytes>=25`, with spaces around the `>=` operator.
+`rest.bytes >= 25` - Equivalent to `rest.bytes>=25`, with spaces around the `>=` operator.
 
 ### Typed Keys
-FlyQL now supports typed keys for more precise field targeting:
+FlyQL now supports typed keys for more precise column targeting:
 
-`jsonfield:user-agent = 'firefox'` - Selects records where the `user-agent` field in the `jsonfield` JSON object equals `'firefox'`.
+`jsonfield.user-agent = 'firefox'` - Selects records where the `user-agent` column in the `jsonfield` JSON object equals `'firefox'`.
 
 ### Quoted JSON Paths
-For JSON paths containing special characters (like colons), you can now use quotes:
+For JSON paths containing special characters (like dots or hyphens), you can use quotes:
 
-`jsonfield:'my:key:with:colon':path = 123` - Selects records where the JSON path `jsonfield` → `my:key:with:colon` → `path` equals `123`.
+`jsonfield.'my.key.with.dots'.path = 123` - Selects records where the JSON path `jsonfield` → `my.key.with.dots` → `path` equals `123`.
 
-This is particularly useful when your JSON field names contain colons or other special characters that would otherwise be interpreted as path separators.
+This is particularly useful when your JSON column names contain dots or other special characters that would otherwise be interpreted as path separators.

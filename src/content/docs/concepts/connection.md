@@ -62,6 +62,21 @@ Docker connections enable log streaming from Docker containers.
   - Local: `unix:///var/run/docker.sock`
   - Remote: `tcp://<host>:<port>`
 
+### Kubernetes Connection
+
+Kubernetes connections enable log querying from pods and containers via the Kubernetes API.
+
+**Parameters:**
+- **`Use local file path instead of content`** – Toggle to choose between local file path or inline content
+  - When enabled: Use local file path (requires `Kubeconfig file path`)
+  - When disabled: Provide kubeconfig content inline (requires `Kubeconfig Yaml Content`)
+- **`Context FlyQL Filter`** – FlyQL expression to filter available contexts
+  - Example: `name ~ "prod.*"` to include only production contexts
+  - Leave empty to include all contexts from the kubeconfig
+- **`Max Concurrent Requests`** – Maximum number of concurrent API requests per context (default: 20)
+  - Controls parallelism when fetching logs from multiple pods
+  - Each context will have at most N parallel requests
+
 ## Connection Lifecycle
 
 1. **Creation**: Administrator or authorized user creates a connection

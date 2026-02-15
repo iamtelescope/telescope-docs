@@ -2,6 +2,38 @@
 title: Changelog
 ---
 
+## 2026.02.16
+Version: **0.0.24**
+
+Changes:
+- **Kubernetes log source support**: Added support for querying logs for pods and containers directly from Kubernetes API. Thanks to [Toocky](https://github.com/Toocky) for initial implementation!
+- **FlyQL syntax update**: Dot notation for JSON paths, `in`/`not in` operators, truthy/falsy checks - see [Query Input documentation](/ui/explorer/query#new-features--breaking-changes-v0024) for details
+- **Bugfix**: Fixed datetime range picker bug - see https://github.com/iamtelescope/telescope/issues/68
+
+Notes:
+
+:::caution[FlyQL breaking changes]
+
+**Migration required**: All existing queries using nested JSON paths must be updated to use the new dot notation. E.g. `labels:app` → `labels.app`
+
+Please read the [Query Input documentation](/ui/explorer/query#new-features--breaking-changes-v0024) for full details.
+
+:::
+
+**Motivation for changing JSON path syntax**
+
+- Dot notation (`.`) is the standard path separator in most query languages and JSON path specifications (JSONPath, jq, etc.), making FlyQL more intuitive for users familiar with these tools.
+- Colon notation (`:`) was non-standard and could be confused with other syntax elements like namespacing or key-value pairs in Kubernetes contexts.
+- The change aligns FlyQL with common conventions, reducing the learning curve and improving readability of complex queries.
+
+Related issues:
+- [ISSUE-73](https://github.com/iamtelescope/telescope/issues/73)
+- [ISSUE-71](https://github.com/iamtelescope/telescope/issues/71)
+
+Related documentation:
+- [Kubernetes log source setup guide](/howto/kubernetes)
+- [Query Input - FlyQL changes](/ui/explorer/query#new-features--breaking-changes-v0024)
+
 ## 2025.11.07
 Version: **0.0.23**
 
@@ -95,8 +127,8 @@ Changes:
 - Support for the native protocol (`clickhouse-driver`) has been removed.
 - `JSON` ClickHouse data type is now supported
 - FlyQL now supports **whitespace around operators**. Expressions like `key = value` are valid now (previously only `key=value` was allowed).
-- FlyQL now supports **typed keys**, such as `jsonfield:user-agent = 'firefox'`.
-- FlyQL now supports **quoted JSON paths** to handle special characters like colons. Example: `jsonfield:'my:key:with:colon':path = 123`.
+- FlyQL now supports **typed keys**, such as `jsonfield.user-agent = 'firefox'`.
+- FlyQL now supports **quoted JSON paths** to handle special characters like dots. Example: `jsonfield.'my.key.with.dots'.path = 123`.
 
 Notes:
 

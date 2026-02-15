@@ -1,19 +1,19 @@
 ---
-title: Fields Input
-description: Learn how to define and format fields in the Fields Input to control data display in result tables.
+title: Columns Input
+description: Learn how to define and format columns in the Columns Input to control data display in result tables.
 ---
 
-The Fields Input allows you to precisely define which fields appear in the resulting table and how they are formatted. Each field definition is a comma-separated entry that must correspond to a field in the source; otherwise, an error will occur.
+The Columns Input allows you to precisely define which columns appear in the resulting table and how they are formatted. Each column definition is a comma-separated entry that must correspond to a column in the source; otherwise, an error will occur.
 
-Use the Fields Input to control exactly which data appears in your output table and how it is displayed.
+Use the Columns Input to control exactly which data appears in your output table and how it is displayed.
 
-## Field Definition Format
+## Column Definition Format
 
-Each field definition can include the following components:
+Each column definition can include the following components:
 
-1. **Field Name** - The base name of the field you wish to display.
+1. **Column Name** - The base name of the column you wish to display.
 
-2. **Modifiers (Optional)** - Use modifiers to transform or format the field's data. Append a modifier using the `|` symbol. Multiple modifiers can be chained together, and they are applied sequentially. Multiple arguments can be passed with comma-separated manner.
+2. **Modifiers (Optional)** - Use modifiers to transform or format the column's data. Append a modifier using the `|` symbol. Multiple modifiers can be chained together, and they are applied sequentially. Multiple arguments can be passed with comma-separated manner.
 
    **Example:**
    - `message|chars(25)` – Applies the `chars(25)` modifier to limit the text length.
@@ -22,23 +22,23 @@ Each field definition can include the following components:
 
     Currently, **only client-side modifiers** are supported. You can check the exact code of the modifiers [here](https://github.com/iamtelescope/telescope/blob/main/ui/src/utils/modifiers.js)
 
-3. **Alias (Optional)** - Assign an alias to rename the field in the output. If an alias is desired, it should be added after all modifiers using the `as` keyword.
+3. **Alias (Optional)** - Assign an alias to rename the column in the output. If an alias is desired, it should be added after all modifiers using the `as` keyword.
 
    **Example:**
    - `message as msg`
    - `message|lastline|chars(25) as message`
 
 
-## Working with JSON, Map, and Array Fields
+## Working with JSON, Map, and Array Columns
 
-For fields stored as JSON strings, Maps, or Arrays, you can extract nested values using a colon (`:`) as a delimiter.
+For columns stored as JSON strings, Maps, or Arrays, you can extract nested values using a dot (`.`) as a delimiter.
 
-### JSON Fields
-You can navigate JSON structures using the field path separated by colons.
+### JSON Columns
+You can navigate JSON structures using the column path separated by dots.
 
 **Example:**
 ```plaintext
-rest:app:request:bytes
+rest.app.request.bytes
 ```
 For the JSON object:
 ```json
@@ -54,12 +54,12 @@ For the JSON object:
 ```
 This expression returns `25`. If the specified key does not exist, an empty string is returned.
 
-### Map Fields
-For **Map**-type fields, you can access values using the key name.
+### Map Columns
+For **Map**-type columns, you can access values using the key name.
 
 **Example:**
 ```plaintext
-metadata:request_id
+metadata.request_id
 ```
 For the map:
 ```json
@@ -71,8 +71,8 @@ For the map:
 ```
 This expression returns `"abc-123"`.
 
-### Array Fields
-For **Array**-type fields, you can access elements by index.
+### Array Columns
+For **Array**-type columns, you can access elements by index.
 
 **Example:**
 ```plaintext
@@ -186,8 +186,8 @@ Example: `message|highlight("sql")` for SQL queries or `message|highlight("json"
 
 ## Summary
 
-- **Comma-Separated Definitions:** Specify multiple fields by separating them with commas.
-- **Validation:** Each field must exist in the source; otherwise, an error is raised.
-- **Modifiers:** Enhance or transform field data for customized display.
-- **Alias:** Optionally rename fields for clarity in the results.
+- **Comma-Separated Definitions:** Specify multiple columnsby separating them with commas.
+- **Validation:** Each columnmust exist in the source; otherwise, an error is raised.
+- **Modifiers:** Enhance or transform columndata for customized display.
+- **Alias:** Optionally rename columnsfor clarity in the results.
 - **JSON Extraction:** Use colon-separated paths to retrieve nested data from JSON strings.

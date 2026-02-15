@@ -57,6 +57,17 @@ django:
     default:
       ENGINE: django.db.backends.sqlite3
       NAME: telescope-default-db.sqlite3
+  # Django cache configuration - supports any cache backend supported by Django
+  # See https://docs.djangoproject.com/en/stable/topics/cache/ for available options
+  CACHES:
+    default:
+      BACKEND: django.core.cache.backends.db.DatabaseCache
+      LOCATION: telescope_cache
+      # Alternative: In-memory cache (faster, but not shared across workers)
+      # BACKEND: django.core.cache.backends.locmem.LocMemCache
+      # Alternative: Redis cache (requires redis-py package)
+      # BACKEND: django.core.cache.backends.redis.RedisCache
+      # LOCATION: redis://127.0.0.1:6379/1
   DEBUG: false
 
 gunicorn:

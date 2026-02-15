@@ -29,12 +29,12 @@ it allows you to enable or disable the raw query editor for the selected source.
 The **Graph setup** button opens a menu with settings for configuring graph visualization. Currently, it allows you to:
 
 - **Toggle graph visibility** – Enable or disable the display of the graph.
-- **Set Group By field** – Choose a field to group data in the graph.
+- **Set Group By column** – Choose a column to group data in the graph.
 
-Grouping is also supported for elements JSON, Map or Array fields types using the colon (`:`) notation. (Refer to the [Fields input documentation](fields.md#working-with-json,-map,-and-array-fields) for more details on accessing nested data).
+Grouping is also supported for JSON, Map or Array column types using the colon (`:`) notation. (Refer to the [Columns input documentation](columns.md#working-with-json-map-and-array-columns) for more details on accessing nested data).
 
-### Fields Input
-A detailed description of the `fields input` is located on a separate [page](./fields.md).
+### Columns Input
+A detailed description of the `columns input` is located on a separate [page](./columns.md).
 
 ### Query input
 A detailed description of the `query input` is located on a separate [page](./query.md).
@@ -50,7 +50,11 @@ A detailed description of the `saved views` is located on a separate [page](./sa
 ![Results](_assets/results.png "Results")
 
 ### Graph Representation
-The graph is currently built based on the severity field, which is specified in the source and this is the only available behavior at the moment. In the future, there will be an option to build the graph based on any arbitrary key.
+The graph is currently built based on the severity column, which is specified in the source and this is the only available behavior at the moment. In the future, there will be an option to build the graph based on any arbitrary key.
+
+:::tip[Severity for Docker/Kubernetes sources]
+For Docker and Kubernetes sources, severity can be extracted from log message bodies using **severity rules**. This enables the same rich visualization as ClickHouse sources with dedicated severity columns. See [Severity Rules](/concepts/severity-rules) for details.
+:::
 
 If the number of rows displayed on the screen does not match the range of the graph, the visible area of the retrieved and displayed rows is highlighted on the graph. This allows users to easily correlate the data in the table with its graphical representation, ensuring that they do not lose track of which rows have been loaded and displayed.
 
@@ -58,7 +62,7 @@ This visualization mechanism improves data navigation, especially when dealing w
 ![Graph](_assets/graph.png "Graph")
 
 ### Result Table
-The resulting table **always contains a time field**, which is defined in the source. Row colors are determined based on the severity field from the source. This ensures that rows with the same severity have the same color. Also, row colors are match to graph colors.
+The resulting table **always contains a time column**, which is defined in the source. Row colors are determined based on the severity column from the source. This ensures that rows with the same severity have the same color. Also, row colors match graph colors.
 
 :::caution
 If the data reaches the limit, a message will be displayed indicating that only a subset of the matching entries is shown. For example:

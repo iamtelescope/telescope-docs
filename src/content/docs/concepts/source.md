@@ -5,16 +5,14 @@ description: Understand how Sources work in Telescope and their relationship wit
 
 A **Source** is an object that defines how to access and interpret data from an external system. Sources reference [Connections](/concepts/connection) for connectivity and add data-specific configuration on top.
 
-## Overview
-
 While a [Connection](/concepts/connection) handles the technical connectivity (host, credentials, SSL), a Source defines:
 - **Which data to access** (database, table, container filters)
-- **Field mappings** (which fields to query, their types, display names)
-- **Special field roles** (time field, severity field)
+- **Column mappings** (which columns to query, their types, display names)
+- **Special column roles** (time column, severity column)
 - **Query capabilities** (autocomplete, suggestions, raw queries)
 - **Access permissions** (who can read/use/edit the source)
 
-## Source Components
+## Source components
 
 ### Connection Reference
 
@@ -33,20 +31,20 @@ For ClickHouse sources:
 - **`database`** – Which database to query
 - **`table`** – Which table contains the data
 
-### Field Configuration
+### Column Configuration
 
-Sources define which fields from the underlying data should be exposed:
-- Field names and display aliases
+Sources define which columns from the underlying data should be exposed:
+- Column names and display aliases
 - Data types
 - Autocomplete and suggestion settings
 - JSON string handling
 - Enum values
 
-### Special Fields
+### Special Columns
 
-- **Time Field** – Used for time-range queries in the explorer
-- **Severity Field** – Used for colored log bars and default grouping
-- **Default Chosen Fields** – Fields shown by default in results
+- **Time Column** – Used for time-range queries in the explorer
+- **Severity Column** – Used for colored log bars and default grouping
+- **Default Chosen Columns** – Columns shown by default in results
 
 ## Source Types
 
@@ -57,22 +55,50 @@ Uses a ClickHouse connection to query log data from ClickHouse tables.
 **Requirements:**
 - ClickHouse connection (HTTP/HTTPS protocol only)
 - Database and table specification
-- Time field for temporal queries
+- Time column for temporal queries
 
 For ClickHouse connections, Telescope uses the [clickhouse-connect](https://clickhouse.com/docs/en/integrations/language-clients/python/intro) Python library, which communicates exclusively over HTTP(S) protocol. As of version 0.0.19, the native protocol (previously supported via clickhouse-driver) is no longer supported.
 
 ### Docker Source
 
+*Since v0.0.15*
+
 Uses a Docker connection to stream logs from containers.
 
 **Requirements:**
 - Docker connection (local or remote socket)
-- Predefined field set (cannot be customized)
+- Predefined column set (cannot be customized)
 
 **Limitations:**
-- Field list is fixed
-- No severity field support
-- No field customization
+- Column list is fixed
+- No column customization
+
+:::note[Log message structure]
+Docker container logs arrive as plain text strings. Telescope normalizes them by wrapping each log line in a JSON structure with a `body` column containing the original log message. For example, the log string `[ERROR] Connection failed` becomes `{"body": "[ERROR] Connection failed"}`. This normalization allows [Severity Rules](/concepts/severity-rules) to extract severity from the message text using JSON paths or regex patterns.
+:::
+
+### Kubernetes Source
+
+*Since v0.0.24*
+
+Uses a Kubernetes connection to query logs from pods and containers via the Kubernetes API.
+
+**Requirements:**
+- Kubernetes connection (kubeconfig-based authentication)
+- Context and namespace selection
+- Pod filtering configuration
+
+**Features:**
+- Multi-context and multi-namespace support
+- Advanced pod filtering (label selectors, field selectors, FlyQL filters)
+- Rich metadata (pod labels, container names, node information)
+- Predefined column set with Kubernetes-specific metadata
+
+:::note[Log message structure]
+Kubernetes pod logs arrive as plain text strings from the Kubernetes API. Similar to Docker sources, Telescope normalizes them by wrapping each log line in a JSON structure with a `body` column containing the original message. This allows [Severity Rules](/concepts/severity-rules) to extract severity from the log text.
+:::
+
+See the [Kubernetes Setup Guide](/howto/kubernetes) for detailed setup instructions.
 
 ## Source as RBAC Entity
 

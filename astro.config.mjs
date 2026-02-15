@@ -73,6 +73,7 @@ export default defineConfig({
             { label: "Authentication & authorization", slug: "concepts/auth" },
             { label: "Connections", slug: "concepts/connection" },
             { label: "Data sources", slug: "concepts/source" },
+            { label: "Severity rules", slug: "concepts/severity-rules" },
             { label: "Querying data", slug: "concepts/querying" },
             { label: "Releases", slug: "concepts/releases" },
           ],
@@ -80,13 +81,29 @@ export default defineConfig({
         {
           label: "User interface",
           items: [
-            { label: "Connection configuration", slug: "ui/connection" },
-            { label: "Source configuration", slug: "ui/source" },
+            {
+              label: "Connection configuration",
+              items: [
+                { label: "Overview", slug: "ui/connection" },
+                { label: "Creating a ClickHouse connection", slug: "ui/connection/clickhouse" },
+                { label: "Creating a Kubernetes connection", slug: "ui/connection/kubernetes" },
+                { label: "Creating a Docker connection", slug: "ui/connection/docker" },
+              ],
+            },
+            {
+              label: "Source configuration",
+              items: [
+                { label: "Overview", slug: "ui/source" },
+                { label: "Creating a ClickHouse source", slug: "ui/source/clickhouse" },
+                { label: "Creating a Kubernetes source", slug: "ui/source/kubernetes" },
+                { label: "Creating a Docker source", slug: "ui/source/docker" },
+              ],
+            },
             {
               label: "Data explorer",
               items: [
                 { label: "Overview", slug: "ui/explorer" },
-                { label: "Fields input", slug: "ui/explorer/fields" },
+                { label: "Columns input", slug: "ui/explorer/columns" },
                 { label: "Query input", slug: "ui/explorer/query" },
                 { label: "Raw query input", slug: "ui/explorer/raw_query" },
                 { label: "Saved views", slug: "ui/explorer/saved_views" },
@@ -96,7 +113,11 @@ export default defineConfig({
         },
         {
           label: "How-to guides",
-          items: [{ label: "Demo logs setup", slug: "howto/demologs" }],
+          items: [
+            { label: "Demo logs setup", slug: "howto/demologs" },
+            { label: "Reading Kubernetes pod logs", slug: "howto/kubernetes" },
+            { label: "Severity rules by example", slug: "howto/severity-rules" },
+          ],
         },
         { label: "Changelog", slug: "changelog" },
       ],

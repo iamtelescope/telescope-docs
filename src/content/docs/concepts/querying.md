@@ -9,9 +9,9 @@ Telescope’s approach to data querying is designed to be both **user-friendly**
 
 Currently, Telescope supports only ClickHouse as a data source. However, by utilizing FlyQL as a universal query abstraction layer, Telescope is well-positioned to extend support to other sources in the future without sacrificing a secure, controlled environment.
 
-For most users, writing SQL queries is unnecessary overhead - it’s both time-consuming and complex. Instead, Telescope **separates field selection from query filtering**, allowing users to build queries by choosing from **explicitly allowed fields** and applying filters in a structured manner. This design enhances transparency and security in several ways:
+For most users, writing SQL queries is unnecessary overhead - it's both time-consuming and complex. Instead, Telescope **separates column selection from query filtering**, allowing users to build queries by choosing from **explicitly allowed columns** and applying filters in a structured manner. This design enhances transparency and security in several ways:
 
-- **Field Selector:** Ensures that users see only permitted fields, preventing the accidental exposure of sensitive data.
+- **Column Selector:** Ensures that users see only permitted columns, preventing the accidental exposure of sensitive data.
 - **Eliminates Direct SQL Access:** Mitigates risks such as SQL injection, unauthorized network requests, or improper file system access.
 
 Additionally, for advanced users, **custom SQL `WHERE` conditions** are supported. Users with the necessary permissions can extend the `WHERE` clause with custom ClickHouse SQL expressions, allowing more precise filtering while maintaining overall query control and security.
