@@ -2,6 +2,13 @@
 title: Changelog
 ---
 
+## 2026.02.19
+Version: **0.0.25**
+
+Changes:
+- **Bugfix**: Fixed FlyQL filtering for ClickHouse sources
+- **Bugfix**: Fixed `base_url` handling ([#92](https://github.com/iamtelescope/telescope/issues/92))
+
 ## 2026.02.16
 Version: **0.0.24**
 
