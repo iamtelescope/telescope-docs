@@ -1,0 +1,151 @@
+---
+title: Config file options
+description: Reference for all Telescope configuration file options
+---
+
+Telescope is configured via a YAML file. Set the `TELESCOPE_CONFIG_FILE` environment variable to its path.
+
+For default values, see [config.py](https://github.com/iamtelescope/telescope/blob/main/backend/telescope/config.py).
+
+## auth
+
+| Option | Description |
+|--------|-------------|
+| `auth.force_auth_provider` | Force login via a specific provider: `github` or `okta`. When set, the login page redirects automatically. See [Authentication & authorization](/concepts/auth). |
+| `auth.local_login_secret_path` | Secret URL segment for emergency local login when forced auth is enabled (e.g. `emergency-abc123` creates `/login/emergency-abc123`). |
+| `auth.enable_testing_auth` | Always authenticate without any conditions. For development use only. |
+| `auth.testing_auth_username` | Username to use when `enable_testing_auth` is enabled. Default: `telescope`. |
+
+### auth.providers.github
+
+| Option | Description |
+|--------|-------------|
+| `auth.providers.github.enabled` | Enable login via GitHub. |
+| `auth.providers.github.client_id` | GitHub OAuth app client ID. |
+| `auth.providers.github.key` | GitHub OAuth app key. |
+| `auth.providers.github.secret` | GitHub OAuth app secret. |
+| `auth.providers.github.default_group` | Group to add users to on first login. The group must already exist. |
+| `auth.providers.github.organizations` | If set, restrict login to members of these GitHub organizations. |
+
+### auth.providers.okta
+
+| Option | Description |
+|--------|-------------|
+| `auth.providers.okta.enabled` | Enable login via Okta. |
+| `auth.providers.okta.client_id` | Okta OAuth client ID. |
+| `auth.providers.okta.secret` | Okta OAuth client secret. |
+| `auth.providers.okta.base_url` | Okta base URL (e.g. `https://yourcompany.okta.com`). |
+| `auth.providers.okta.default_group` | Group to add users to on first login. The group must already exist. |
+| `auth.providers.okta.scope` | OAuth scopes to request (space-separated). Default: `openid profile email`. |
+| `auth.providers.okta.pkce_enabled` | Enable PKCE (Proof Key for Code Exchange) for enhanced security. Default: `true`. |
+
+## django
+
+Passed directly to Django settings. Supports any Django setting.
+
+| Option | Description |
+|--------|-------------|
+| `django.CSRF_TRUSTED_ORIGINS` | List of trusted origins for CSRF validation. Must include your domain when running behind a reverse proxy. |
+| `django.ALLOWED_HOSTS` | List of allowed hostnames. Required when `DEBUG` is false. |
+| `django.DATABASES` | Django database configuration. Defaults to SQLite. Supports any [Django database backend](https://docs.djangoproject.com/en/stable/ref/databases/). |
+| `django.CACHES` | Django cache configuration. Defaults to database cache. Supports any [Django cache backend](https://docs.djangoproject.com/en/stable/topics/cache/). |
+| `django.DEBUG` | Enable Django debug mode. Default: `false`. |
+
+## gunicorn
+
+| Option | Description |
+|--------|-------------|
+| `gunicorn.bind` | Address and port to listen on. Default: `127.0.0.1:9898`. |
+| `gunicorn.workers` | Number of worker processes. Default: `8`. |
+| `gunicorn.timeout` | Worker timeout in seconds. Default: `120`. |
+| `gunicorn.max_requests` | Max requests a worker handles before being restarted. Default: `50`. |
+| `gunicorn.max_requests_jitter` | Random jitter added to `max_requests` to avoid all workers restarting simultaneously. Default: `50`. |
+
+## limits
+
+| Option | Description |
+|--------|-------------|
+| `limits.max_saved_views_per_user` | Maximum number of saved views a user can create. Set to `0` for unlimited. Default: `0`. |
+
+## frontend
+
+| Option | Description |
+|--------|-------------|
+| `frontend.base_url` | URL subpath for running Telescope behind a reverse proxy (e.g. `/telescope`). See [Running behind a reverse proxy](/howto/reverse-proxy). |
+| `frontend.show_github_url` | Show the GitHub link in the top navigation bar. Default: `true`. |
+| `frontend.github_url` | GitHub URL shown in the top bar. |
+| `frontend.show_docs_url` | Show the docs link in the top navigation bar. Default: `true`. |
+| `frontend.docs_url` | Docs URL shown in the top bar. |
+
+## logging
+
+| Option | Description |
+|--------|-------------|
+| `logging.format` | Log output format. Options: `default`, `dev`, `json`. Default: `default`. |
+| `logging.levels` | Log level overrides per logger (e.g. `django`, `telescope`). Supports any Python logger name. |
+
+## Example configuration
+
+```yaml
+auth:
+  providers:
+    github:
+      enabled: false
+      default_group: null
+      client_id: ''
+      key: ''
+      secret: ''
+      organizations: []
+    okta:
+      enabled: false
+      client_id: ''
+      secret: ''
+      base_url: ''
+      default_group: null
+      scope: 'openid profile email'
+      pkce_enabled: true
+  force_auth_provider: null
+  local_login_secret_path: null
+  enable_testing_auth: false
+  testing_auth_username: telescope
+
+django:
+  CSRF_TRUSTED_ORIGINS:
+    - http://localhost:9898
+  DATABASES:
+    default:
+      ENGINE: django.db.backends.sqlite3
+      NAME: telescope-default-db.sqlite3
+  CACHES:
+    default:
+      BACKEND: django.core.cache.backends.db.DatabaseCache
+      LOCATION: telescope_cache
+  DEBUG: false
+
+gunicorn:
+  bind: 127.0.0.1:9898
+  max_requests: 50
+  max_requests_jitter: 50
+  timeout: 120
+  workers: 8
+
+limits:
+  max_saved_views_per_user: 0
+
+frontend:
+  show_github_url: true
+  github_url: ""
+  show_docs_url: true
+  docs_url: ""
+  base_url: ""
+
+logging:
+  format: default
+  levels:
+    all: DEBUG
+    django: DEBUG
+    django.request: DEBUG
+    django.template: INFO
+    django.utils.autoreload: INFO
+    telescope: DEBUG
+```
