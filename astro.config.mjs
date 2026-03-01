@@ -117,6 +117,7 @@ export default defineConfig({
             { label: "Demo logs setup", slug: "howto/demologs" },
             { label: "Reading Kubernetes pod logs", slug: "howto/kubernetes" },
             { label: "Severity rules by example", slug: "howto/severity-rules" },
+            { label: "Database migrations", slug: "howto/migrations" },
           ],
         },
         { label: "Changelog", slug: "changelog" },
