@@ -118,6 +118,7 @@ export default defineConfig({
             { label: "Reading Kubernetes pod logs", slug: "howto/kubernetes" },
             { label: "Severity rules by example", slug: "howto/severity-rules" },
             { label: "Database migrations", slug: "howto/migrations" },
+            { label: "Running behind a reverse proxy", slug: "howto/reverse-proxy" },
           ],
         },
         { label: "Changelog", slug: "changelog" },
