@@ -2,6 +2,25 @@
 title: Changelog
 ---
 
+## 2026.03.15
+Version: **0.0.26**
+
+Changes:
+- **StarRocks source support**: Added support for querying logs from StarRocks databases, including TLS connections, external catalogs, and query hints. Thanks to [plangdale-roblox](https://github.com/plangdale-roblox)!
+- **Bugfix**: Fixed `base_url` handling — removed absolute fetch calls to allow relative fetches from custom base URLs. Thanks to [Toocky](https://github.com/Toocky)!
+- **Bugfix**: Fixed FlyQL `to_sql` call using legacy `fields` instead of `columns` for ClickHouse sources
+
+Related issues:
+- [ISSUE-92](https://github.com/iamtelescope/telescope/issues/92)
+
+Notes:
+
+:::caution[Caution]
+
+This release requires database migrations to be run. See [Database migrations](/howto/migrations) for instructions.
+
+:::
+
 ## 2026.02.19
 Version: **0.0.25**
 

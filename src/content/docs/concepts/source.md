@@ -22,12 +22,17 @@ Every source references exactly one connection. The connection provides:
 - Protocol configuration
 
 :::note
-For ClickHouse sources, the database and table are specified in the **Source** configuration, not in the Connection. This allows multiple sources to use the same connection while accessing different databases or tables.
+For ClickHouse and StarRocks sources, the database and table are specified in the **Source** configuration, not in the Connection. This allows multiple sources to use the same connection while accessing different databases or tables.
 :::
 
-### Data Location (ClickHouse)
+### Data Location (ClickHouse / StarRocks)
 
 For ClickHouse sources:
+- **`database`** – Which database to query
+- **`table`** – Which table contains the data
+
+For StarRocks sources:
+- **`catalog`** – Which catalog to use (default: `default_catalog` for internal tables)
 - **`database`** – Which database to query
 - **`table`** – Which table contains the data
 
@@ -58,6 +63,23 @@ Uses a ClickHouse connection to query log data from ClickHouse tables.
 - Time column for temporal queries
 
 For ClickHouse connections, Telescope uses the [clickhouse-connect](https://clickhouse.com/docs/en/integrations/language-clients/python/intro) Python library, which communicates exclusively over HTTP(S) protocol. As of version 0.0.19, the native protocol (previously supported via clickhouse-driver) is no longer supported.
+
+### StarRocks Source
+
+*Since v0.0.26*
+
+Uses a StarRocks connection to query log data from StarRocks tables.
+
+**Requirements:**
+- StarRocks connection (MySQL protocol)
+- Catalog, database, and table specification
+- Time column for temporal queries
+
+StarRocks sources support the **catalog** concept, allowing queries against both internal (native) tables and external catalogs (Hive, Iceberg, Hudi, etc.). Query hints can be configured to tune performance via StarRocks `SET_VAR()` syntax.
+
+:::note
+For StarRocks sources, the catalog, database, and table are specified in the **Source** configuration, not in the Connection. This allows multiple sources to use the same connection while accessing different catalogs, databases, or tables.
+:::
 
 ### Docker Source
 

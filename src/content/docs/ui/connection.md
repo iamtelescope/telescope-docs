@@ -10,6 +10,7 @@ Connections are reusable objects that store technical connectivity details for e
 Telescope supports several types of connections, each with different configuration requirements:
 
 - **[ClickHouse connection](/ui/connection/clickhouse)**
+- **[StarRocks connection](/ui/connection/starrocks)**
 - **[Kubernetes connection](/ui/connection/kubernetes)**
 - **[Docker connection](/ui/connection/docker)**
 

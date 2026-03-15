@@ -10,6 +10,7 @@ Sources define how to access and interpret data from external systems. To create
 Telescope supports several types of sources, each with different configuration requirements:
 
 - **[ClickHouse source](/ui/source/clickhouse)**
+- **[StarRocks source](/ui/source/starrocks)**
 - **[Kubernetes source](/ui/source/kubernetes)**
 - **[Docker source](/ui/source/docker)**
 
@@ -93,7 +94,7 @@ For detailed examples and patterns, see [Severity rules by example](/howto/sever
 To edit a source, navigate to its detail page and click **"Edit"**.
 
 :::warning[Connection kind restriction]
-When editing a source, you cannot change to a connection of a different kind. The connection selector will only show connections matching the source's current connection kind (ClickHouse, Docker, or Kubernetes).
+When editing a source, you cannot change to a connection of a different kind. The connection selector will only show connections matching the source's current connection kind (ClickHouse, StarRocks, Docker, or Kubernetes).
 :::
 
 This ensures that the source configuration remains consistent with the connection type.
@@ -105,7 +106,7 @@ The source detail page displays:
 - **Source information**
   - Kind (with icon), slug, name, description
   - Connection information (name, link to connection detail page)
-  - Database and table (for ClickHouse sources)
+  - Database and table (for ClickHouse and StarRocks sources)
 
 - **Column configuration**
   - Complete list of configured columns

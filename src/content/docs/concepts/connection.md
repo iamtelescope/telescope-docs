@@ -53,6 +53,27 @@ ClickHouse connections use the [clickhouse-connect](https://clickhouse.com/docs/
 - **`server_hostname`** – SNI hostname for SSL
 - **`alt_hosts`** – Alternative hosts for failover
 
+### StarRocks Connection
+
+*Since v0.0.26*
+
+StarRocks connections use the [mysql-connector-python](https://dev.mysql.com/doc/connector-python/en/) library, which communicates over the MySQL wire protocol.
+
+**Parameters:**
+- **`host`** – StarRocks FE server host (e.g., `localhost`)
+- **`port`** – MySQL protocol port (default: `9030`)
+- **`user`** – Username for authentication (default: `root`)
+- **`password`** – Password for authentication
+- **`ssl`** – Enable TLS connection
+
+**TLS Options** (when TLS is enabled):
+- **`verify`** – Whether to validate certificates (default: True)
+- **`ca_cert`** – CA certificate content
+- **`client_cert`** – Client certificate content
+- **`client_cert_key`** – Client certificate key content
+- **`server_host_name`** – SNI hostname for TLS
+- **`tls_mode`** – TLS configuration mode
+
 ### Docker Connection
 
 Docker connections enable log streaming from Docker containers.
