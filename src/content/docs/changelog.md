@@ -2,6 +2,29 @@
 title: Changelog
 ---
 
+## 2026.05.08
+Version: **0.0.27**
+
+Changes:
+- **New FlyQL editors**: Replaced the internal Monaco-based query and columns editors with the standalone [flyql](https://flyql.dev) packages. Brings inline diagnostics, smarter suggestions, and async JSON key discovery.
+- **Renderers (`highlight`, `hl`, `href`) now require an `as alias` separator**. The old flat syntax `payload|json|highlight` is rejected — write `payload|json as p|highlight` instead. Transformers (the segment between the column and `as alias`) are unchanged.
+
+:::caution[Breaking change — renderer syntax]
+
+If any saved views or source default-column expressions chain a renderer directly after a transformer (`message|json|highlight`, `payload|hl`, etc.), they need to be edited to insert an `as alias` clause: `message|json as m|highlight`. Untouched expressions will fail to parse and the columns editor will flag them.
+
+:::
+
+:::caution[Caution]
+
+This release requires database migrations to be run. See [Database migrations](/howto/migrations) for instructions.
+
+:::
+
+Related documentation:
+- [Query Input documentation](/ui/explorer/query)
+- [Columns Input documentation](/ui/explorer/columns)
+
 ## 2026.03.15
 Version: **0.0.26**
 

@@ -1,193 +1,98 @@
 ---
 title: Columns Input
-description: Learn how to define and format columns in the Columns Input to control data display in result tables.
+description: Define which columns appear in the explorer table and how their values are formatted.
 ---
 
-The Columns Input allows you to precisely define which columns appear in the resulting table and how they are formatted. Each column definition is a comma-separated entry that must correspond to a column in the source; otherwise, an error will occur.
+The Columns Input is a comma-separated list of [FlyQL column expressions](https://docs.flyql.dev/editor/columns-component/). Each entry must reference a column declared on the source — unknown columns surface as inline diagnostics in the editor.
 
-Use the Columns Input to control exactly which data appears in your output table and how it is displayed.
+A single entry may include:
 
-## Column Definition Format
+1. A **column name** (or dotted path into a JSON / Map column).
+2. Zero or more **transformers** chained with `|` — they reshape the value before display.
+3. An optional **alias** with `as` — the header label in the table.
+4. Zero or more **renderers** chained with `|` after the alias — they control how the value is rendered (escape vs. HTML).
 
-Each column definition can include the following components:
+```
+message
+message|chars(25) as msg
+labels.'app.kubernetes.io/component' as comp
+payload|json as p|highlight
+url as link|href("https://example.com/${value}")
+```
 
-1. **Column Name** - The base name of the column you wish to display.
+See the [FlyQL transformers reference](https://docs.flyql.dev/syntax/transformers/) and [renderers reference](https://docs.flyql.dev/syntax/renderers/) for the full pipeline grammar.
 
-2. **Modifiers (Optional)** - Use modifiers to transform or format the column's data. Append a modifier using the `|` symbol. Multiple modifiers can be chained together, and they are applied sequentially. Multiple arguments can be passed with comma-separated manner.
+## Renderers require an alias
 
-   **Example:**
-   - `message|chars(25)` – Applies the `chars(25)` modifier to limit the text length.
-   - `message|lastline|chars(25)` – Extracts the last line of the message and then limits it to 25 characters.
-   - `message|split(\t)|slice(-1)|join|format(json)|highlight(json)` - Splits the message into an array using a tab (`\t`) as the delimiter, extracts the last element, joins it back into a string, formats it as JSON, and applies JSON syntax highlighting. This can be useful when `message` contains a tab-separated log where one of the parts is a valid JSON that needs to be examined in detail (e.g., logs of requests and their parameters sent by an application).
+Renderers (`highlight`, `hl`, `href`) only attach **after** an `as alias` clause. Pipes before the alias are transformers, pipes after are renderers:
 
-    Currently, **only client-side modifiers** are supported. You can check the exact code of the modifiers [here](https://github.com/iamtelescope/telescope/blob/main/ui/src/utils/modifiers.js)
+```
+payload|json as p|highlight   ✓ json is a transformer, highlight is a renderer
+payload|json|highlight        ✗ both treated as transformers, highlight is rejected
+```
 
-3. **Alias (Optional)** - Assign an alias to rename the column in the output. If an alias is desired, it should be added after all modifiers using the `as` keyword.
+This is enforced by the editor — a chained renderer without an alias is flagged as a syntax error.
 
-   **Example:**
-   - `message as msg`
-   - `message|lastline|chars(25) as message`
+## Nested paths (JSON, Map, Array)
 
+For columns whose source type is JSON, JSONString, or Map (Kubernetes `labels`/`annotations`/`body`, ClickHouse `JSON`/`JSONString`/`Map(...)`, etc.), use dot notation to extract nested keys:
 
-## Working with JSON, Map, and Array Columns
-
-For columns stored as JSON strings, Maps, or Arrays, you can extract nested values using a dot (`.`) as a delimiter.
-
-### JSON Columns
-You can navigate JSON structures using the column path separated by dots.
-
-**Example:**
-```plaintext
+```
 rest.app.request.bytes
-```
-For the JSON object:
-```json
-{
-  "rest": {
-    "app": {
-      "request": {
-        "bytes": 25
-      }
-    }
-  }
-}
-```
-This expression returns `25`. If the specified key does not exist, an empty string is returned.
-
-### Map Columns
-For **Map**-type columns, you can access values using the key name.
-
-**Example:**
-```plaintext
 metadata.request_id
+labels.'app.kubernetes.io/component'
 ```
-For the map:
-```json
-{
-  "metadata": {
-    "request_id": "abc-123"
-  }
-}
+
+Quote a segment with single quotes when it contains dots, slashes, or other special characters. The [FlyQL nested keys docs](https://docs.flyql.dev/syntax/nested-keys/) cover the grammar in detail.
+
+The editor will suggest discovered nested keys for JSON-typed columns as you type — driven by a sample of recent rows from the underlying datastore.
+
+## Transformers available in Telescope
+
+Transformers are evaluated in the browser (display-side) by Telescope; not all are pushed down to SQL. The full list:
+
+| Name | Purpose |
+|---|---|
+| `chars(from[, to])` | Substring by character index. |
+| `slice(from[, to])` | Substring (alias for `chars` with the standard slice convention). |
+| `lines(from[, to])` | Slice of lines from a multi-line value. |
+| `firstline` | First line of a multi-line value. |
+| `lastline` | Last line of a multi-line value. |
+| `oneline` | Strip newlines, collapse to a single line. |
+| `lower` | Lowercase. |
+| `upper` | Uppercase. |
+| `split(sep)` | Split a string into an array. |
+| `join(sep)` | Join an array back into a string. |
+| `json` | Parse a string as JSON. |
+| `str` | Coerce a value to its JSON-string representation. |
+| `type` | The value's runtime type (`string`, `number`, `array`, …). |
+| `fmt([lang])` / `format([lang])` | Pretty-print as JSON or SQL (auto-detected if `lang` is omitted). |
+
+`lower`, `upper`, and `split` are also pushed down to SQL on ClickHouse and StarRocks sources, so they can appear in [query filters](/ui/explorer/query) too. The remaining transformers are display-only — using them in a query filter raises an error.
+
+## Renderers available in Telescope
+
+Renderers control how the post-alias value is rendered into the result cell. Telescope ships three:
+
+| Name | Purpose |
+|---|---|
+| `highlight([lang])` / `hl([lang])` | Apply syntax highlighting via [highlight.js](https://highlightjs.org/) — useful with `|fmt as x|highlight` for JSON/SQL bodies. |
+| `href(template[, displayValue])` | Render the cell as an `<a>` tag. `template` may include `${value}`. |
+
+Only one renderer may be chained per column. Renderers do not affect query evaluation — they're purely a display concern.
+
+## Examples
+
 ```
-This expression returns `"abc-123"`.
+# Show only the first 80 chars of the message
+message|chars(80) as msg
 
-### Array Columns
-For **Array**-type columns, you can access elements by index.
+# Pull a tab-separated JSON payload out of a log line and render highlighted
+message|split("\t")|slice(-1)|join|fmt as payload|highlight
 
-**Example:**
-```plaintext
-errors:0
+# Link an order ID to an external system
+order_id as order|href("https://orders.internal/${value}")
+
+# Extract a specific Kubernetes label
+labels.'app.kubernetes.io/component' as comp
 ```
-For the array:
-```json
-{
-  "errors": ["Error A", "Error B", "Error C"]
-}
-```
-This expression returns `"Error A"`.
-
-Currently, only **one level of nesting** is supported for Maps and Arrays.
-
-Modifiers can also be applied to extracted values for additional processing.
-
-## Available Modifiers
-
-The following modifiers are currently supported:
-
-### chars
-Extracts a substring from the given value based on the specified range. Usage: `chars(from[,to])`, where `from` is the starting index, and `to` (optional) is the ending index. If `to` is not provided, it extracts the first `from` characters.
-
-Example:
-`message|chars(5,10)` extracts characters from index 5 to 10.
-`message|chars(5)` extracts the first 5 characters.
-
-### lines
-Extracts specific lines from the given value based on the specified range. Usage: `lines(from[,to])`, where `from` is the starting line index, and `to` (optional) is the ending line index. If `to` is not provided, it extracts the first `from` lines.
-
-Example:
-`message|lines(2,5)` extracts lines from index 2 to 5.
-`message|lines(3)` extracts the first 3 lines.
-
-### slice
-Extracts a substring from the given value based on the specified range. Usage: `slice(from[,to])`, where `from` is the starting index, and `to` (optional) is the ending index. If `to` is not provided, it extracts from `from` to the end.
-
-Example:
-`message|slice(5,10)` extracts characters from index 5 to 10.
-`message|slice(5)` extracts from index 5 to the end.
-
-### firstline
-Extracts the first line of text. Usage: `firstline`.
-
-Example:
-`message|firstline` extracts the first line from the text.
-
-### lastline
-Extracts the last line of text. Usage: `lastline`.
-
-Example:
-`message|lastline` extracts the last line from the text.
-
-### oneline
-Removes all line breaks from the text, converting it into a single line. Usage: `oneline`.
-
-Example:
-`message|oneline` removes all newline characters, making the text a single continuous line.
-
-### lower
-Converts all characters in the text to lowercase. Usage: `lower`.
-
-Example:
-`message|lower` converts the text to lowercase.
-
-### upper
-Converts all characters in the text to uppercase. Usage: `upper`.
-
-Example:
-`message|upper` converts the text to uppercase.
-
-### split
-Splits the text into an array using the specified delimiter. Usage: `split(splitter)`, where `splitter` is the character or string used to split the text.
-
-Example:
-`message|split(",")` splits the text by commas.
-`message|split(\t)` splits the text by tab character.
-
-### join
-Joins an array into a string using the specified delimiter. Usage: `join(joiner)`, where `joiner` is the character or string used to concatenate the elements.
-
-Example:
-`message|join(", ")` joins array elements with a comma and space.
-
-### json
-Parses the text as JSON and returns the corresponding object. Usage: `json()`.
-
-Example:
-`message|json()` converts a JSON string into an object.
-
-### href
-Generates an HTML `<a>` tag by inserting a given value into a URL template. Usage: `|href(urlTemplate, [urlValue])`, where `urlTemplate` is the URL format with `${value}`, and `urlValue` (optional) is the displayed text.
-
-Example: `message|href("https://example.com/item/${value}", "View Item")` produces `<a href="https://example.com/item/12345">View Item</a>`
-
-### format
-Alias: `fmt`
-
-Formats a given value based on the specified or detected language. Usage: `|fmt([language])`, where language (optional) is the formatting type ("sql" or "json"). If language is not provided, it is detected automatically.
-
-Example: `message|fmt("json")` produces a formatted JSON string, while `message|fmt("sql")` returns a formatted SQL query.
-
-### highlight
-Alias: `hl`
-
-Applies syntax highlighting (via highlight.js lib) for a given value based on the specified or detected language. Usage: `highlight([language])`, where `language` (optional) is `"sql"` or `"json"`. If not provided, it is detected automatically.
-
-Example: `message|highlight("sql")` for SQL queries or `message|highlight("json")` for JSON formatting.
-
-
-## Summary
-
-- **Comma-Separated Definitions:** Specify multiple columnsby separating them with commas.
-- **Validation:** Each columnmust exist in the source; otherwise, an error is raised.
-- **Modifiers:** Enhance or transform columndata for customized display.
-- **Alias:** Optionally rename columnsfor clarity in the results.
-- **JSON Extraction:** Use colon-separated paths to retrieve nested data from JSON strings.

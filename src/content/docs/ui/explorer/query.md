@@ -1,105 +1,49 @@
 ---
 title: Query Input
-description: Learn the FlyQL query syntax for filtering data in ClickHouse and Docker sources.
+description: Filter Telescope data with FlyQL queries — operators, JSON paths, and per-source dialect behavior.
 ---
 
-Query input syntax is [FlyQL](https://github.com/iamtelescope/flyql) syntax. Please refer FlyQL doc.
+The Query Input uses [FlyQL](https://docs.flyql.dev/) syntax. The canonical reference (operators, value forms, lists, dates, pattern matching, transformers, renderers) lives at [docs.flyql.dev](https://docs.flyql.dev/syntax/) — this page only covers what is **specific to Telescope**.
 
-- For ClickHouse sources queries generates by [FlyQL ClickHouse generator](https://github.com/iamtelescope/flyql-generators/tree/main/python/flyql_generators)
-- For **Docker** sources, queries are evaluated directly in Python using [FlyQL's matcher](https://github.com/iamtelescope/flyql/blob/main/python/flyql/matcher/evaluator.py), which does **not support `LIKE`-style wildcard matching**.
+## How Telescope evaluates queries
 
-:::caution
-In Docker sources, expressions like `host=l*ohost` are **not** interpreted using SQL-style `LIKE`. Instead, you should use `~` for pattern matching, e.g. `host~"^l.*ohost$"`.
-:::
+Each source kind compiles or evaluates the same FlyQL query differently:
 
-Despite the fact that the documentation for flyql and flyql ClickHouse generator is located in their respective repositories, a few query examples are provided here to give a basic understanding of how to query data inside Telescope.
+| Source kind | Evaluation path |
+|---|---|
+| ClickHouse | Compiled to a SQL `WHERE` clause via the [FlyQL ClickHouse generator](https://docs.flyql.dev/sql/clickhouse/). |
+| StarRocks | Compiled to a SQL `WHERE` clause via the [FlyQL StarRocks generator](https://docs.flyql.dev/sql/starrocks/). |
+| Docker | Logs are pulled from the daemon and matched in-process by the [FlyQL Python matcher](https://docs.flyql.dev/syntax/). |
+| Kubernetes | Logs are pulled from the Kubernetes API and matched in-process by the same matcher. |
 
-`host=localhost` - Selects records where the `host` column is exactly `"localhost"`.
+For SQL-backed sources, supported operators ultimately depend on what the dialect can express. For Docker/Kubernetes, all evaluation happens in Python and behaves as documented in the FlyQL syntax reference.
 
-`host!=localhost` - Selects records where the `host` column is **not** `"localhost"`.
+## `like` and pattern matching
 
-`host=l*ohost` - Selects records where the `host` column starts with `"l"`, ends with `"ohost"`, and has any characters in between.
-- **ClickHouse**: Matches records where `host` starts with `"l"` and ends with `"ohost"` using SQL `LIKE`.
-- **Docker**: **Not supported** — use a regular expression instead: `host~'^l.*ohost$'`.
+`like` and the regex operators (`~`, `!~`) are supported across all sources, but the semantics differ slightly:
 
-`host=localhost and message=2025*` - Selects records where the `host` is `"localhost"` and the `message` column starts with `"2025"`.
+- **ClickHouse / StarRocks:** `like` compiles to native SQL `LIKE` (`%`, `_` wildcards). Regex compiles to `match()` / equivalent.
+- **Docker / Kubernetes:** evaluated by [google-re2](https://github.com/google/re2) on the server. Use regex for wildcard matching: `pod ~ "^api-.*"` instead of `pod like "api-*"`.
 
-`(host=localhost or host=remote) and not host=puppet` - Selects records where the `host` is either `"localhost"` or `"remote"`, but **not** `"puppet"`.
+## Editor features
 
-`rest.bytes>=25` - Selects records where the `bytes` column inside the `rest` JSON object is greater than or equal to `25`.
+The query editor (powered by [`flyql-vue`](https://docs.flyql.dev/editor/)) provides:
 
-`rest.url~".*monkey.*"` - Selects records where the `url` column inside the `rest` JSON object contains the word `"monkey"` anywhere in the string.
+- **Inline diagnostics**: parse errors and unknown columns are flagged with red squiggles and explained in a panel under the editor.
+- **Context-aware suggestions**: column names, operators, values, transformers, and boolean operators are suggested based on cursor position. `Tab` cycles between value and column suggestions when typing a value.
+- **Value autocomplete**: for columns with `autocomplete: true` in the source schema, value suggestions are fetched from the underlying datastore (ClickHouse `DISTINCT` / StarRocks `GROUP BY`).
+- **JSON key discovery**: typing `column.` on a JSON-typed column triggers a server lookup that suggests nested keys actually present in your recent data, including for ClickHouse `JSON`/`JSONString` columns and Kubernetes `labels`/`annotations`.
+- **Submit**: `Ctrl+Enter` (or `Cmd+Enter`) executes the query.
 
-## New Features & Breaking Changes (v0.0.24)
-
-### Breaking change: regex operator
-
-The regex operator has been simplified from `=~` to `~`:
-
-**Old syntax:**
-```
-message=~"error.*"
-```
-
-**New syntax:**
-```
-message~"error.*"
-```
-
-All queries using `=~` must be updated to use `~`.
-
-### New: list membership operators
-
-FlyQL now supports `in` and `not in` operators for checking if a value exists in a list:
+## Examples
 
 ```
+host = localhost
+host != localhost and message ~ "^2025-"
+(host = localhost or host = remote) and not host = puppet
 status in [200, 201, 204]
-env not in ['prod', 'staging']
-method in ['GET', 'POST'] and status in [200, 201]
+labels.'app.kubernetes.io/component' = "controller"
+active and not archived
 ```
 
-**Rules:**
-- Values are enclosed in square brackets `[]` and separated by commas
-- String values must be quoted: `['a', 'b']`
-- Number values are unquoted: `[1, 2, 3]`
-- Empty list `[]` is allowed (`in []` is always false, `not in []` is always true)
-
-### New: truthy/falsy checks
-
-You can now check if a column has a truthy or falsy value without an explicit comparison:
-
-```
-active                          # column 'active' is truthy
-message and status=200          # 'message' exists and status is 200
-not archived                    # column 'archived' is falsy
-active and not debug            # 'active' is truthy and 'debug' is falsy
-```
-
-A value is considered **falsy** if it is:
-- `null` / `None` / missing
-- Empty string `""`
-- Zero `0`
-- Boolean `false`
-
-Everything else is **truthy**.
-
-## New Features (v0.0.19)
-
-### Whitespace Support
-FlyQL now supports whitespace around operators for improved readability:
-
-`host = localhost` - Equivalent to `host=localhost`, with spaces around the `=` operator.
-
-`rest.bytes >= 25` - Equivalent to `rest.bytes>=25`, with spaces around the `>=` operator.
-
-### Typed Keys
-FlyQL now supports typed keys for more precise column targeting:
-
-`jsonfield.user-agent = 'firefox'` - Selects records where the `user-agent` column in the `jsonfield` JSON object equals `'firefox'`.
-
-### Quoted JSON Paths
-For JSON paths containing special characters (like dots or hyphens), you can use quotes:
-
-`jsonfield.'my.key.with.dots'.path = 123` - Selects records where the JSON path `jsonfield` → `my.key.with.dots` → `path` equals `123`.
-
-This is particularly useful when your JSON column names contain dots or other special characters that would otherwise be interpreted as path separators.
+For deeper coverage — operators (`has`, `in`, truthy checks, ranges), date literals, parameters, reserved words, and the transformer/renderer pipeline — see the [FlyQL syntax docs](https://docs.flyql.dev/syntax/).
